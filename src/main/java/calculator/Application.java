@@ -119,4 +119,19 @@ public class Application {
         return inputResult.split(CUSTOM_DELIMITER);
     }
 
+    //문자열 덧셈
+    private static int sum(String input) {
+        if (input == null || input.isEmpty()) {
+            return 0;
+        }
+        //구분자 분리
+        String[] numbersList = numberExtraction(input);
+
+        int sum = 0;
+        for (String number : numbersList) {
+            sum += Integer.parseInt(number);
+        }
+        return sum;
+    }
+
 }
