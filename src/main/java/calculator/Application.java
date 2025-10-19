@@ -7,11 +7,13 @@ import java.util.regex.Pattern;
 public class Application {
 
     // 기본 구분자 지정
-    private static final String DELIMITER = "[,;]";
+    private static final String DELIMITER_COMMA = ",";
+    private static final String DELIMITER_COLON = ":";
+    private static final String DELIMITER = "[,:@]";
     //커스텀 구분자 패턴
     private static final Pattern CUSTOM_PATTERN_DELIMITER = Pattern.compile("//(.+)\n(.*)");
     //커스텀 구분자 지정
-    private static String CUSTOM_DELIMITER ="";
+    private static String CUSTOM_DELIMITER ="@";
 
     public static void main(String[] args) {
         // TODO: 프로그램 구현
@@ -68,21 +70,54 @@ public class Application {
 
         //커스텀 패턴 일지/존재 여부
         if(matcher.matches()){//커스텀 패턴과 일치하면
-            // 지정된 커스텀 문자열 추출
-            String customDelimiter = matcher.group(1);
-            //커스텀 문자열을 저장
-            CUSTOM_DELIMITER = customDelimiter;
+            // 지정된 커스텀 문자열 추출, 정제
+            String regex = Pattern.quote(matcher.group(1));
 
             //커스텀 부분을 제외한 뒷부분만 추출
             String modifiedInput = matcher.group(2);
-            //수정된 문자열로 수정
-            input = modifiedInput;
+
+            //커스텀 문자열 @로 일괄 치환
+            String replacement = modifiedInput.replaceAll(regex, DELIMITER_COLON);
+
+            //커스텀 부분을 제외한, 가공괸 문자열을 반환함
+            return new String(replacement.getBytes());
         } else {
             throw new IllegalArgumentException("커스텀 패턴에 오류가 있습니다.");
         }
+    }
 
-        //커스텀 부분을 제외한, 가공괸 문자열을 반환함
-        return new String(input.getBytes());
+    //문자열에 대한 검증 메소드
+    private static void preciseCheck(String input) throws IllegalArgumentException {
+        if (input == null || input.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
+        //구분자와 숫자 이외의 것 허용 된지 검증 패턴
+        String allowedCharsPattern = "[\\d" + DELIMITER.substring(1, DELIMITER.length() - 1) + "]+";
+
+        if (!input.matches("^" + allowedCharsPattern + "$")) {
+            throw new IllegalArgumentException("허용 되지 않은 문자가 포함되어 있습니다. " + input);
+        }
+
+        //구분자 중복 사용 검증
+        String unallowedOverlapPattern = "(" + DELIMITER + "){2,}";
+
+        if (Pattern.compile(unallowedOverlapPattern).matcher(input).find()) {
+            throw new IllegalArgumentException("구분자가 중복으로 사용되고 있습니다. "+input);
+        }
+    }
+
+    //구분자를 기준으로 숫자 분리
+    private static  String[] numberExtraction(String input) throws IllegalArgumentException {
+        if (input == null || input.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
+        //문자열에 대한 검증 진행
+        preciseCheck(input);
+
+        // 구분자를 기준으로 숫자 분리
+        return input.split(CUSTOM_DELIMITER);
     }
 
 
